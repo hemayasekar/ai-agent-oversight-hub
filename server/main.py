@@ -1,4 +1,8 @@
-"""FastAPI server for AI Agent Oversight Hub OpenEnv."""
+"""FastAPI server for AI Agent Oversight Hub OpenEnv.
+
+Uses OpenEnv's create_fastapi_app for framework compliance,
+with additional custom endpoints for tasks and health.
+"""
 
 from contextlib import asynccontextmanager
 from typing import Optional
@@ -6,6 +10,8 @@ from typing import Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+
+from openenv.core.env_server import create_fastapi_app
 
 from .environment import (
     OversightEnvironment,
@@ -15,33 +21,24 @@ from .environment import (
 from .models import (
     OversightAction,
     OversightObservation,
-    StepResult,
-    ResetResult,
-    StateResult,
+    OversightState,
     WorkerDecision,
 )
 from .scenarios import TASK_METADATA
 
 
-_env: Optional[OversightEnvironment] = None
+# --- Create the OpenEnv-compliant FastAPI app ---
+_default_task = "easy_single_error"
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    """Manage application lifecycle."""
-    global _env
-    _env = create_environment()
-    yield
-    if _env:
-        _env.close()
-
-
-app = FastAPI(
-    title="AI Agent Oversight Hub",
-    description="An OpenEnv environment for training AI oversight agents to monitor multi-agent systems",
-    version="1.0.0",
-    lifespan=lifespan,
+app = create_fastapi_app(
+    env=lambda: create_environment(_default_task),
+    action_cls=OversightAction,
+    observation_cls=OversightObservation,
 )
+
+app.title = "AI Agent Oversight Hub"
+app.description = "An OpenEnv environment for training AI oversight agents to monitor multi-agent systems"
+app.version = "1.0.0"
 
 app.add_middleware(
     CORSMiddleware,
@@ -52,7 +49,10 @@ app.add_middleware(
 )
 
 
-# --- Request/Response models ---
+# --- Additional custom endpoints ---
+
+_env: Optional[OversightEnvironment] = None
+
 
 class ResetRequest(BaseModel):
     task_id: Optional[str] = None
@@ -77,8 +77,6 @@ class HealthResponse(BaseModel):
     version: str
 
 
-# --- Endpoints ---
-
 @app.get("/", response_model=HealthResponse)
 async def root():
     return HealthResponse(status="healthy", environment="ai-agent-oversight-hub", version="1.0.0")
@@ -102,8 +100,8 @@ async def list_tasks_endpoint():
     ]
 
 
-@app.post("/reset", response_model=ResetResult)
-async def reset(request: ResetRequest = None):
+@app.post("/reset")
+async def reset_endpoint(request: ResetRequest = None):
     global _env
 
     if request is None:
@@ -122,18 +120,17 @@ async def reset(request: ResetRequest = None):
         _env.close()
 
     _env = create_environment(task_id)
-    result = _env.reset(task_id)
-    return result
+    obs = _env.reset(task_id=task_id)
+    return {"observation": obs.model_dump()}
 
 
-@app.post("/step", response_model=StepResult)
-async def step(request: StepRequest):
+@app.post("/step")
+async def step_endpoint(request: StepRequest):
     global _env
 
     if _env is None:
         raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
 
-    # Parse decisions
     decisions = []
     for d in request.decisions:
         decisions.append(WorkerDecision(
@@ -149,21 +146,24 @@ async def step(request: StepRequest):
         explanation=request.explanation,
     )
 
-    result = _env.step(action)
-    return result
+    obs = _env.step(action)
+    return {
+        "observation": obs.model_dump(),
+        "reward": obs.reward,
+        "done": obs.done,
+        "info": obs.info,
+    }
 
 
-@app.get("/state", response_model=StateResult)
-async def state():
+@app.get("/state")
+async def state_endpoint():
     global _env
 
     if _env is None:
         raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
 
-    return _env.state()
+    return _env.state.model_dump()
 
-
-# --- OpenEnv Spec Compliance ---
 
 @app.get("/openenv/info")
 async def openenv_info():

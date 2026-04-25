@@ -40,3 +40,16 @@ inference:
     - API_BASE_URL
     - MODEL_NAME
     - ENV_BASE_URL
+
+training:
+  script: "train.py"
+  notebook: "training_notebook.ipynb"
+  framework: "trl"
+  method: "GRPO"
+  env:
+    - OVERSIGHT_ENV_URL
+  default_model: "Qwen/Qwen3-1.7B"
+
+evaluation:
+  script: "evaluate.py"
+  plots_dir: "plots/"

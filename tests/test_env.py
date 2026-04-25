@@ -1,7 +1,7 @@
 """Tests for the AI Agent Oversight Hub environment."""
 
 import pytest
-from server.models import OversightAction, WorkerDecision
+from server.models import OversightAction, WorkerDecision, OversightState
 from server.environment import OversightEnvironment, create_environment, get_available_tasks
 from server.scenarios import list_tasks, get_scenario, TASK_SCENARIOS
 from server.explanation_scorer import score_explanation
@@ -46,18 +46,19 @@ def test_scenarios_have_faults():
 def test_reset_returns_observation():
     """Reset returns a valid observation."""
     env = create_environment("easy_single_error")
-    result = env.reset("easy_single_error")
-    obs = result.observation
+    obs = env.reset(task_id="easy_single_error")
     assert obs.task_id == "easy_single_error"
     assert obs.current_step == 0
     assert len(obs.worker_outputs) > 0
+    assert obs.done is False
+    assert obs.reward is not None
     env.close()
 
 
 def test_step_returns_reward():
     """Step returns reward in [0, 1]."""
     env = create_environment("easy_single_error")
-    env.reset("easy_single_error")
+    env.reset(task_id="easy_single_error")
 
     action = OversightAction(
         decisions=[
@@ -67,16 +68,16 @@ def test_step_returns_reward():
         explanation="Worker alpha states Berlin is the capital of Spain, which contradicts the reference that says Berlin is the capital of Germany.",
     )
 
-    result = env.step(action)
-    assert 0.0 <= result.reward <= 1.0
-    assert isinstance(result.done, bool)
+    obs = env.step(action)
+    assert 0.0 <= obs.reward <= 1.0
+    assert isinstance(obs.done, bool)
     env.close()
 
 
 def test_perfect_easy_gets_high_reward():
     """Perfect decisions on easy task should yield high reward."""
     env = create_environment("easy_single_error")
-    env.reset("easy_single_error")
+    env.reset(task_id="easy_single_error")
 
     # Step 1: reject alpha (Berlin/Spain error), approve beta
     action = OversightAction(
@@ -86,15 +87,15 @@ def test_perfect_easy_gets_high_reward():
         ],
         explanation="Worker alpha incorrectly states Berlin is the capital of Spain. The reference clearly shows Berlin is the capital of Germany. Worker beta's output is accurate.",
     )
-    result = env.step(action)
-    assert result.reward > 0.5, f"Perfect step 1 reward too low: {result.reward}"
+    obs = env.step(action)
+    assert obs.reward > 0.5, f"Perfect step 1 reward too low: {obs.reward}"
     env.close()
 
 
 def test_approve_all_gets_low_reward():
     """Approving everything when there are faults should yield low reward."""
     env = create_environment("easy_single_error")
-    env.reset("easy_single_error")
+    env.reset(task_id="easy_single_error")
 
     action = OversightAction(
         decisions=[
@@ -103,16 +104,16 @@ def test_approve_all_gets_low_reward():
         ],
         explanation="Everything looks fine.",
     )
-    result = env.step(action)
+    obs = env.step(action)
     # Should be low because missed the fault
-    assert result.reward < 0.7, f"Approve-all reward too high: {result.reward}"
+    assert obs.reward < 0.7, f"Approve-all reward too high: {obs.reward}"
     env.close()
 
 
 def test_quarantine_removes_worker():
     """Quarantining a worker removes them from future observations."""
     env = create_environment("easy_single_error")
-    env.reset("easy_single_error")
+    env.reset(task_id="easy_single_error")
 
     # Quarantine worker_alpha
     action = OversightAction(
@@ -122,10 +123,9 @@ def test_quarantine_removes_worker():
         ],
         explanation="Worker alpha has factual errors, quarantining.",
     )
-    result = env.step(action)
+    obs = env.step(action)
 
     # Next observation should not include worker_alpha
-    obs = result.observation
     worker_ids = [w.worker_id for w in obs.worker_outputs]
     assert "worker_alpha" not in worker_ids
     assert "worker_alpha" in obs.quarantined_workers
@@ -135,8 +135,9 @@ def test_quarantine_removes_worker():
 def test_episode_terminates():
     """Episode should terminate after all scenario steps."""
     env = create_environment("easy_single_error")
-    env.reset("easy_single_error")
+    env.reset(task_id="easy_single_error")
 
+    obs = None
     for _ in range(20):  # More than enough steps
         action = OversightAction(
             decisions=[
@@ -145,17 +146,17 @@ def test_episode_terminates():
             ],
             explanation="Approving all.",
         )
-        result = env.step(action)
-        if result.done:
+        obs = env.step(action)
+        if obs.done:
             break
 
-    assert result.done
+    assert obs.done
 
 
 def test_state_tracks_cumulative():
     """State should track cumulative stats."""
     env = create_environment("easy_single_error")
-    env.reset("easy_single_error")
+    env.reset(task_id="easy_single_error")
 
     action = OversightAction(
         decisions=[
@@ -166,10 +167,10 @@ def test_state_tracks_cumulative():
     )
     env.step(action)
 
-    state = env.state()
-    assert state.current_step == 1
-    assert state.total_reward > 0.0
-    assert state.true_positives + state.false_positives + state.false_negatives + state.true_negatives > 0
+    s = env.state
+    assert s.current_step == 1
+    assert s.total_reward > 0.0
+    assert s.true_positives + s.false_positives + s.false_negatives + s.true_negatives > 0
     env.close()
 
 
@@ -177,9 +178,9 @@ def test_all_tasks_can_reset():
     """Every task can be reset without errors."""
     for task_id in get_available_tasks():
         env = create_environment(task_id)
-        result = env.reset(task_id)
-        assert result.observation.task_id == task_id
-        assert len(result.observation.worker_outputs) > 0
+        obs = env.reset(task_id=task_id)
+        assert obs.task_id == task_id
+        assert len(obs.worker_outputs) > 0
         env.close()
 
 

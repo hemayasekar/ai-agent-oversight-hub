@@ -1,26 +1,32 @@
-"""OversightEnvironment — core step/reset/state lifecycle.
+"""OversightEnvironment — OpenEnv-compliant environment.
 
-Manages the multi-agent oversight simulation with quarantine mechanics.
+Subclasses openenv.core.env_server.Environment with proper
+reset(), step(), state property lifecycle.
 """
 
 from typing import Any, Optional
+import uuid
+
+from openenv.core.env_server import Environment
 
 from .models import (
     WorkerOutput,
     OversightObservation,
     OversightAction,
-    StepResult,
-    ResetResult,
-    StateResult,
+    OversightState,
 )
 from .scenarios import get_scenario, list_tasks, Scenario, TASK_METADATA
 from .grader import grade_step
 
 
-class OversightEnvironment:
-    """Environment where an oversight agent monitors simulated workers."""
+class OversightEnvironment(Environment[OversightAction, OversightObservation, OversightState]):
+    """Environment where an oversight agent monitors simulated workers.
+
+    Implements the OpenEnv Environment interface (reset, step, state).
+    """
 
     def __init__(self, task_id: str = "easy_single_error"):
+        super().__init__()
         self._task_id = task_id
         self._scenario: Optional[Scenario] = None
         self._current_step = 0
@@ -33,13 +39,19 @@ class OversightEnvironment:
         self._fp = 0
         self._fn = 0
         self._tn = 0
+        self._episode_id: Optional[str] = None
 
-    def reset(self, task_id: Optional[str] = None) -> ResetResult:
-        """Reset environment to initial state for a task."""
+    def reset(self, seed: Optional[int] = None, episode_id: Optional[str] = None, **kwargs: Any) -> OversightObservation:
+        """Reset environment to initial state for a task.
+
+        Conforms to OpenEnv Environment.reset() signature.
+        """
+        task_id = kwargs.get("task_id", None)
         if task_id:
             self._task_id = task_id
             self._max_steps = TASK_METADATA[task_id]["max_steps"]
 
+        self._episode_id = episode_id or str(uuid.uuid4())
         self._scenario = get_scenario(self._task_id)
         self._current_step = 0
         self._done = False
@@ -51,17 +63,19 @@ class OversightEnvironment:
         self._fn = 0
         self._tn = 0
 
-        observation = self._build_observation()
-        return ResetResult(observation=observation)
+        return self._build_observation(reward=0.0, info={})
 
-    def step(self, action: OversightAction) -> StepResult:
-        """Execute one step: agent submits decisions, environment grades them."""
+    def step(self, action: OversightAction, timeout_s: Optional[float] = None, **kwargs: Any) -> OversightObservation:
+        """Execute one step: agent submits decisions, environment grades them.
+
+        Conforms to OpenEnv Environment.step() signature.
+        Returns OversightObservation with reward and done set.
+        """
         if self._done:
-            return StepResult(
-                observation=self._build_observation(),
+            return self._build_observation(
                 reward=0.0,
                 done=True,
-                info={"message": "Episode is done. Call /reset to start a new one."},
+                info={"message": "Episode is done. Call reset to start a new one."},
             )
 
         if self._scenario is None:
@@ -114,18 +128,17 @@ class OversightEnvironment:
             self._done = True
             info["paused"] = True
 
-        observation = self._build_observation()
+        return self._build_observation(reward=reward, done=self._done, info=info)
 
-        return StepResult(
-            observation=observation,
-            reward=reward,
-            done=self._done,
-            info=info,
-        )
+    @property
+    def state(self) -> OversightState:
+        """Return current environment state.
 
-    def state(self) -> StateResult:
-        """Return current environment state."""
-        return StateResult(
+        Conforms to OpenEnv Environment.state property.
+        """
+        return OversightState(
+            episode_id=self._episode_id,
+            step_count=self._current_step,
             task_id=self._task_id,
             scenario_id=self._scenario.scenario_id if self._scenario else "",
             current_step=self._current_step,
@@ -143,11 +156,22 @@ class OversightEnvironment:
         """Clean up resources."""
         self._scenario = None
 
-    def _build_observation(self) -> OversightObservation:
+    def _build_observation(
+        self,
+        reward: float = 0.0,
+        done: Optional[bool] = None,
+        info: Optional[dict] = None,
+    ) -> OversightObservation:
         """Build the observation for the current step."""
+        if done is None:
+            done = self._done
+        if info is None:
+            info = {}
+
         if self._scenario is None:
-            # Return empty observation if not initialized
             return OversightObservation(
+                done=done,
+                reward=reward,
                 task_id=self._task_id,
                 task_description="",
                 scenario_id="",
@@ -156,6 +180,7 @@ class OversightEnvironment:
                 worker_outputs=[],
                 reference_materials="",
                 steps_remaining=self._max_steps,
+                info=info,
             )
 
         # Get scenario step (or last step if past end)
@@ -175,6 +200,8 @@ class OversightEnvironment:
         ]
 
         return OversightObservation(
+            done=done,
+            reward=reward,
             task_id=self._task_id,
             task_description=self._scenario.description,
             scenario_id=self._scenario.scenario_id,
@@ -190,6 +217,7 @@ class OversightEnvironment:
             system_alerts=scenario_step.alerts,
             quarantined_workers=self._quarantined_workers,
             steps_remaining=self._max_steps - self._current_step,
+            info=info,
         )
 
 

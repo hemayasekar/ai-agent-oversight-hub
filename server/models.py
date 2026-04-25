@@ -1,7 +1,16 @@
-"""Pydantic models for AI Agent Oversight Hub."""
+"""Pydantic models for AI Agent Oversight Hub.
+
+Uses OpenEnv base classes (Observation, Action, State) for framework compliance.
+"""
 
 from typing import Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
+
+from openenv.core.env_server import (
+    Observation as OpenEnvObservation,
+    Action as OpenEnvAction,
+    State as OpenEnvState,
+)
 
 
 class WorkerOutput(BaseModel):
@@ -14,15 +23,20 @@ class WorkerOutput(BaseModel):
     metadata: dict[str, Any] = {}
 
 
-class OversightObservation(BaseModel):
-    """What the oversight agent sees each step."""
-    task_id: str
-    task_description: str
-    scenario_id: str
-    current_step: int
-    max_steps: int
-    worker_outputs: list[WorkerOutput]
-    reference_materials: str
+class OversightObservation(OpenEnvObservation):
+    """What the oversight agent sees each step.
+
+    Extends OpenEnv Observation with done/reward/metadata from base class.
+    """
+    model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
+
+    task_id: str = ""
+    task_description: str = ""
+    scenario_id: str = ""
+    current_step: int = 0
+    max_steps: int = 0
+    worker_outputs: list[WorkerOutput] = []
+    reference_materials: str = ""
     worker_history: list[dict[str, Any]] = []
     flagged_items: list[str] = []
     system_alerts: list[str] = []
@@ -30,7 +44,8 @@ class OversightObservation(BaseModel):
     available_actions: list[str] = [
         "approve", "reject", "flag", "reassign", "quarantine"
     ]
-    steps_remaining: int
+    steps_remaining: int = 0
+    info: dict[str, Any] = {}
 
 
 class WorkerDecision(BaseModel):
@@ -41,36 +56,39 @@ class WorkerDecision(BaseModel):
     confidence: float = Field(ge=0.0, le=1.0, default=0.8)
 
 
-class OversightAction(BaseModel):
-    """The oversight agent's action each step."""
-    decisions: list[WorkerDecision]
+class OversightAction(OpenEnvAction):
+    """The oversight agent's action each step.
+
+    Extends OpenEnv Action base class.
+    """
+    model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
+
+    decisions: list[WorkerDecision] = []
     global_action: str = "no_action"  # "no_action", "escalate", "pause_all"
     explanation: str = ""
 
 
-class StepResult(BaseModel):
-    """Result of a step."""
-    observation: OversightObservation
-    reward: float
-    done: bool
-    info: dict[str, Any] = {}
+class OversightState(OpenEnvState):
+    """Current environment state.
+
+    Extends OpenEnv State with episode_id and step_count from base class.
+    """
+    model_config = ConfigDict(extra="allow", arbitrary_types_allowed=True)
+
+    task_id: str = ""
+    scenario_id: str = ""
+    current_step: int = 0
+    max_steps: int = 0
+    done: bool = False
+    total_reward: float = 0.0
+    true_positives: int = 0
+    false_positives: int = 0
+    false_negatives: int = 0
+    true_negatives: int = 0
+    quarantined_workers: list[str] = []
 
 
-class ResetResult(BaseModel):
-    """Result of a reset."""
-    observation: OversightObservation
-
-
-class StateResult(BaseModel):
-    """Current environment state."""
-    task_id: str
-    scenario_id: str
-    current_step: int
-    max_steps: int
-    done: bool
-    total_reward: float
-    true_positives: int
-    false_positives: int
-    false_negatives: int
-    true_negatives: int
-    quarantined_workers: list[str]
+# Legacy aliases for backward compatibility
+StepResult = None  # No longer needed — Observation carries reward+done
+ResetResult = None  # No longer needed — reset() returns Observation
+StateResult = OversightState  # Alias
