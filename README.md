@@ -12,7 +12,7 @@ license: mit
 
 > **Train AI agents to watch other AI agents** — detecting errors, hallucinations, sabotage, and coalition behavior in multi-agent systems.
 
-**[Live Environment on HF Spaces](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)** · **[Training Notebook (Colab)](https://colab.research.google.com/github/hemaya/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)** · **[Blog Post](BLOG.md)**
+**[Live Environment on HF Spaces](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)** · **[Training Notebook (Colab)](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)** · **[Blog Post](BLOG.md)**
 
 ---
 
@@ -219,7 +219,7 @@ A researcher could write a paper about training on this. The domain (AI-on-AI ov
 ## Materials
 
 - **Live Environment:** [HF Space](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)
-- **Training Notebook:** [Colab](https://colab.research.google.com/github/hemaya/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)
+- **Training Notebook:** [Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)
 - **Blog Post:** [BLOG.md](BLOG.md)
 - **OpenEnv:** [github.com/meta-pytorch/OpenEnv](https://github.com/meta-pytorch/OpenEnv)
 - **TRL OpenEnv Docs:** [huggingface.co/docs/trl/en/openenv](https://huggingface.co/docs/trl/en/openenv)
