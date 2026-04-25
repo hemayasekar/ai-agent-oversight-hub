@@ -87,7 +87,7 @@ The repository includes a full training pipeline using TRL's `GRPOTrainer` (Grou
 3. **Train with GRPOTrainer** — the model learns to generate JSON oversight decisions that maximize the composite reward
 
 ```bash
-python train.py --model Qwen/Qwen2.5-1.5B-Instruct --episodes 50 --epochs 3
+python train.py --model Qwen/Qwen3-0.6B --episodes 50 --epochs 3
 ```
 
 The training script handles prompt formatting, response parsing with fallback, and reward collection — all communicating with the environment via HTTP.
@@ -116,7 +116,7 @@ CMD ["uvicorn", "server.main:app", "--host", "0.0.0.0", "--port", "7860"]
 
 ## What's Next
 
-1. **LLM agent evaluation** — Running Qwen2.5-1.5B through training to see how much GRPO improves over the heuristic baseline
+1. **LLM agent evaluation** — Running Qwen3-0.6B through GRPO training to see how much it improves over the heuristic baseline
 2. **Harder scenarios** — Dynamic scenarios where workers adapt their deception strategies based on the oversight agent's behavior
 3. **Multi-step reasoning** — Scenarios requiring the agent to gather evidence across multiple steps before making quarantine decisions
 

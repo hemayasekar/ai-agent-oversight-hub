@@ -48,7 +48,7 @@ training:
   method: "GRPO"
   env:
     - OVERSIGHT_ENV_URL
-  default_model: "Qwen/Qwen3-1.7B"
+  default_model: "Qwen/Qwen3-0.6B"
 
 evaluation:
   script: "evaluate.py"
