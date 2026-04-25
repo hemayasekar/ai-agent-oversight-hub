@@ -1,6 +1,6 @@
 {
   "random_baseline": {
-    "overall_mean_reward": 0.3906032,
+    "overall_mean_reward": 0.3931096,
     "episodes": 25
   },
   "heuristic_agent": {
