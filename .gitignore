@@ -9,4 +9,3 @@ build/
 .venv/
 .DS_Store
 uv.lock
-plots/*.png
