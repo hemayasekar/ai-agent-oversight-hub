@@ -52,9 +52,10 @@ class OversightClient:
 
     def step(self, decisions: list[dict], global_action: str = "no_action",
              explanation: str = "") -> dict:
-        payload = {"decisions": decisions, "global_action": global_action,
-                   "explanation": explanation}
-        r = self.client.post(f"{self.base_url}/step", json=payload)
+        # OpenEnv wraps the action body in an "action" key.
+        action_body = {"decisions": decisions, "global_action": global_action,
+                       "explanation": explanation}
+        r = self.client.post(f"{self.base_url}/step", json={"action": action_body})
         r.raise_for_status()
         return r.json()
 

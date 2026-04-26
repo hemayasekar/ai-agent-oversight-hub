@@ -1,0 +1,22 @@
+{
+  "random": {
+    "per_task": {
+      "easy_single_error": 0.433628,
+      "medium_subtle_hallucination": 0.408908,
+      "medium_multi_worker_coordination": 0.36393200000000003,
+      "hard_adversarial_sabotage": 0.3376,
+      "hard_coalition_detection": 0.40064
+    },
+    "overall": 0.3889416
+  },
+  "heuristic": {
+    "per_task": {
+      "easy_single_error": 0.67932,
+      "medium_subtle_hallucination": 0.5916,
+      "medium_multi_worker_coordination": 0.69694,
+      "hard_adversarial_sabotage": 0.57084,
+      "hard_coalition_detection": 0.6216999999999999
+    },
+    "overall": 0.63208
+  }
+}

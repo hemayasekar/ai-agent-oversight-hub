@@ -111,7 +111,13 @@ def grade_step(
     action_score = sum(action_scores) / max(1, len(action_scores))
 
     # --- 3. Explanation Quality (0.25 weight) ---
-    explanation_score, explanation_breakdown = score_explanation(action.explanation)
+    # Pass reference materials and worker outputs for grounding check —
+    # this is the anti-gaming measure that prevents keyword stuffing.
+    explanation_score, explanation_breakdown = score_explanation(
+        action.explanation,
+        reference_materials=step.reference_snippet,
+        worker_outputs=step.worker_outputs,
+    )
 
     # --- 4. Efficiency (0.15 weight) ---
     efficiency_parts = []

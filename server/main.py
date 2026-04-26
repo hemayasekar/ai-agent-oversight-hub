@@ -2,6 +2,12 @@
 
 Uses OpenEnv's create_fastapi_app for framework compliance,
 with additional custom endpoints for tasks and health.
+
+The environment is exposed as a singleton so /reset and /step calls share
+state across requests (required for multi-step episodes). Both the
+OpenEnv-registered routes (which expect `{"action": {...}}`) and our
+legacy flat routes (which accept `{"decisions": [...], ...}`) operate on
+the same env instance.
 """
 
 from contextlib import asynccontextmanager
@@ -27,11 +33,22 @@ from .models import (
 from .scenarios import TASK_METADATA
 
 
-# --- Create the OpenEnv-compliant FastAPI app ---
+# --- Singleton env for stateful multi-step episodes ---
 _default_task = "easy_single_error"
+_env: OversightEnvironment = create_environment(_default_task)
 
+
+def _env_singleton() -> OversightEnvironment:
+    """Factory that returns the singleton env (and a no-op close)."""
+    # OpenEnv calls .close() in finally blocks; we override to be a no-op
+    # so the singleton survives across requests.
+    _env.close = lambda: None  # type: ignore[method-assign]
+    return _env
+
+
+# --- Create the OpenEnv-compliant FastAPI app ---
 app = create_fastapi_app(
-    env=lambda: create_environment(_default_task),
+    env=_env_singleton,
     action_cls=OversightAction,
     observation_cls=OversightObservation,
 )
@@ -50,8 +67,6 @@ app.add_middleware(
 
 
 # --- Additional custom endpoints ---
-
-_env: Optional[OversightEnvironment] = None
 
 
 class ResetRequest(BaseModel):
@@ -100,52 +115,42 @@ async def list_tasks_endpoint():
     ]
 
 
-@app.post("/reset")
-async def reset_endpoint(request: ResetRequest = None):
-    global _env
+# Legacy flat-payload endpoints (kept for back-compat with train.py / demo.py).
+# These provide a flat-payload alternative to OpenEnv's wrapped /reset and
+# /step endpoints. The OpenEnv routes are also wired to the singleton env
+# above, so both work — choose whichever is easier for your client.
 
+@app.post("/reset_legacy")
+async def reset_legacy_endpoint(request: ResetRequest = None):
     if request is None:
         request = ResetRequest()
-
     task_id = request.task_id or "easy_single_error"
-
     available = get_available_tasks()
     if task_id not in available:
         raise HTTPException(
             status_code=400,
             detail=f"Unknown task: {task_id}. Available: {available}",
         )
-
-    if _env:
-        _env.close()
-
-    _env = create_environment(task_id)
     obs = _env.reset(task_id=task_id)
     return {"observation": obs.model_dump()}
 
 
-@app.post("/step")
-async def step_endpoint(request: StepRequest):
-    global _env
-
-    if _env is None:
-        raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
-
-    decisions = []
-    for d in request.decisions:
-        decisions.append(WorkerDecision(
+@app.post("/step_legacy")
+async def step_legacy_endpoint(request: StepRequest):
+    decisions = [
+        WorkerDecision(
             worker_id=d.get("worker_id", ""),
             decision=d.get("decision", "approve"),
             issue_type=d.get("issue_type", "none"),
             confidence=d.get("confidence", 0.8),
-        ))
-
+        )
+        for d in request.decisions
+    ]
     action = OversightAction(
         decisions=decisions,
         global_action=request.global_action,
         explanation=request.explanation,
     )
-
     obs = _env.step(action)
     return {
         "observation": obs.model_dump(),
@@ -157,11 +162,6 @@ async def step_endpoint(request: StepRequest):
 
 @app.get("/state")
 async def state_endpoint():
-    global _env
-
-    if _env is None:
-        raise HTTPException(status_code=400, detail="Environment not initialized. Call /reset first.")
-
     return _env.state.model_dump()
 
 
