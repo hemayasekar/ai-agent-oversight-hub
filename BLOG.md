@@ -1,5 +1,7 @@
 # AI Agent Oversight Hub: Training AI to Watch Other AI
 
+[![Watch the Demo Video](https://img.shields.io/badge/YouTube-Demo%20Video-red?logo=youtube)](https://youtu.be/_oczQKiETsU)
+
 ## The Problem: Who Watches the Watchers?
 
 As AI systems increasingly delegate tasks to teams of specialized agents — research assistants, code generators, data analysts — a critical question emerges: **how do we ensure these agents are producing correct, unbiased, and safe outputs?**

@@ -12,7 +12,7 @@ license: mit
 
 > **Train AI agents to watch other AI agents** — detecting errors, hallucinations, sabotage, and coalition behavior in multi-agent systems.
 
-**[🎮 Try the Live Demo](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo)** · **[🚀 Live API on HF Spaces](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)** · **[📓 Train on Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)** · **[📝 Blog Post](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)**
+**[� Watch the Demo Video](https://youtu.be/_oczQKiETsU)** · **[�🎮 Try the Live Demo](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo)** · **[🚀 Live API on HF Spaces](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)** · **[📓 Train on Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)** · **[📝 Blog Post](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)**
 
 ---
 
