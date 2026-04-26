@@ -12,7 +12,7 @@ license: mit
 
 > **Train AI agents to watch other AI agents** — detecting errors, hallucinations, sabotage, and coalition behavior in multi-agent systems.
 
-**[🎮 Try the Live Demo](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo)** · **[🚀 Live API on HF Spaces](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)** · **[💻 Train on Kaggle (Free GPU)](https://www.kaggle.com/code/import?source=github&url=https://github.com/hemayasekar/ai-agent-oversight-hub/blob/main/kaggle_training.ipynb)** · **[📓 Train on Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)** · **[📝 Blog Post](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)**
+**[🎮 Try the Live Demo](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo)** · **[🚀 Live API on HF Spaces](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)** · **[📓 Train on Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)** · **[📝 Blog Post](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)**
 
 ---
 
@@ -250,7 +250,6 @@ A researcher could write a paper about training on this. The domain (AI-on-AI ov
 
 - **🚀 Live Environment (HF Space):** https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub
 - **🎮 Interactive Demo:** https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo
-- **💻 Train on Kaggle (free GPU):** [`kaggle_training.ipynb`](kaggle_training.ipynb) — [import to Kaggle](https://www.kaggle.com/code/import?source=github&url=https://github.com/hemayasekar/ai-agent-oversight-hub/blob/main/kaggle_training.ipynb)
 - **📓 Train on Colab:** [`training_notebook.ipynb`](training_notebook.ipynb) — [Open in Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)
 - **📝 Blog / Writeup:** [`BLOG.md`](BLOG.md) and [HF Space Discussion](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)
 - **📊 Evaluation plots:** [`plots/`](plots/) (committed PNGs + `eval_results.json`)
