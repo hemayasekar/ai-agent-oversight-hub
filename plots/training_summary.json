@@ -1,4 +1,4 @@
 {
   "status": "pending",
-  "instructions": "Run kaggle_training.ipynb on Kaggle to populate this file with real training metrics."
+  "instructions": "Run colab_training.ipynb on Google Colab to populate this file with real training metrics."
 }

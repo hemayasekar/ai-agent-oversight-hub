@@ -33,7 +33,7 @@ A researcher could build on this directly. The domain is fresh, the reward signa
 
 ![Project architecture — modules and their relationships](docs/architecture_overview.png)
 
-_Server (FastAPI + OpenEnv) hosts the environment, grader, and 5 scenarios. Training (`train.py` + Colab/Kaggle notebooks) talks to it over HTTP. Evaluation produces the plots committed in `plots/`._
+_Server (FastAPI + OpenEnv) hosts the environment, grader, and 5 scenarios. Training (`train.py` + Colab notebook) talks to it over HTTP. Evaluation produces the plots committed in `plots/`._
 
 ![Execution flow — train → evaluate → infer → save outputs](docs/execution_flow.png)
 
@@ -127,7 +127,7 @@ We evaluated three agents across all 5 tasks, 25 episodes each, **using the hard
 | ----------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
 | Random Baseline         | 0.377                                                                               | —                                                    |
 | Heuristic Agent         | **0.639**                                                                           | **+70%**                                             |
-| GRPO-Trained Qwen3-0.6B | _see [`plots/agent_comparison.json`](plots/agent_comparison.json) after Kaggle run_ | _populated by `compare_agents.py --trained-model …`_ |
+| GRPO-Trained Qwen3-0.6B | _see [`plots/agent_comparison.json`](plots/agent_comparison.json) after Colab run_ | _populated by `compare_agents.py --trained-model …`_ |
 
 > **Reproduce:** `python evaluate.py --env-url http://localhost:7860 --episodes 25` for the random/heuristic plots, then `python compare_agents.py --episodes 5 --trained-model hemaya/oversight-qwen3-0.6b` for the three-way comparison. Plots are written to `plots/` as PNGs and raw numbers to `plots/eval_results.json` and `plots/agent_comparison.json`.
 
@@ -161,13 +161,13 @@ _Detection accuracy and action appropriateness drive the largest improvements. E
 
 ## Training Evidence (GRPO on Qwen3-0.6B)
 
-We trained `Qwen/Qwen3-0.6B` against this environment using TRL's `GRPOTrainer` + `environment_factory` pattern on a Kaggle T4 GPU. The trainer auto-records loss and reward per step — plots and raw logs below.
+We trained `Qwen/Qwen3-0.6B` against this environment using TRL's `GRPOTrainer` + `environment_factory` pattern on a Google Colab T4 GPU. The trainer auto-records loss and reward per step — plots and raw logs below.
 
 ### Training Loss
 
 ![GRPO training loss over steps](plots/training_loss.png)
 
-_X-axis: training step. Y-axis: GRPO loss. Generated automatically by the Kaggle notebook (`kaggle_training.ipynb`, cell 7) from `trainer.state.log_history`._
+_X-axis: training step. Y-axis: GRPO loss. Generated automatically by the Colab notebook (`colab_training.ipynb`) from `trainer.state.log_history`._
 
 ### Reward Curve During Training
 
