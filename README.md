@@ -123,10 +123,10 @@ The hard scenarios are where it gets interesting: **coalition detection** requir
 
 We evaluated three agents across all 5 tasks, 25 episodes each, **using the hardened reward** (with grounding + anti-gaming penalties enabled):
 
-| Agent                   | Mean Reward                                                                         | Improvement vs Random                                |
-| ----------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------- |
-| Random Baseline         | 0.377                                                                               | —                                                    |
-| Heuristic Agent         | **0.639**                                                                           | **+70%**                                             |
+| Agent                   | Mean Reward                                                                        | Improvement vs Random                                |
+| ----------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Random Baseline         | 0.377                                                                              | —                                                    |
+| Heuristic Agent         | **0.639**                                                                          | **+70%**                                             |
 | GRPO-Trained Qwen3-0.6B | _see [`plots/agent_comparison.json`](plots/agent_comparison.json) after Colab run_ | _populated by `compare_agents.py --trained-model …`_ |
 
 > **Reproduce:** `python evaluate.py --env-url http://localhost:7860 --episodes 25` for the random/heuristic plots, then `python compare_agents.py --episodes 5 --trained-model hemaya/oversight-qwen3-0.6b` for the three-way comparison. Plots are written to `plots/` as PNGs and raw numbers to `plots/eval_results.json` and `plots/agent_comparison.json`.
