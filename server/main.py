@@ -187,6 +187,17 @@ async def action_space():
     return OversightAction.model_json_schema()
 
 
+# --- Mount Gradio interactive demo at /demo ---
+try:
+    import gradio as gr
+    from .demo import build_demo
+
+    _demo = build_demo()
+    app = gr.mount_gradio_app(app, _demo, path="/demo")
+except ImportError:
+    pass  # Gradio is optional — server still works without it
+
+
 def main():
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=7860)
