@@ -302,6 +302,7 @@ A researcher could write a paper about training on this. The domain (AI-on-AI ov
 
 ## Materials
 
+- **🎬 Demo Video:** https://youtu.be/_oczQKiETsU
 - **🚀 Live Environment (HF Space):** https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub
 - **🎮 Interactive Demo:** https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo
 - **📓 Train on Colab:** [`training_notebook.ipynb`](training_notebook.ipynb) — [Open in Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)
