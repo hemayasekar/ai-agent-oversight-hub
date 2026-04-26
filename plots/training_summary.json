@@ -1,0 +1,4 @@
+{
+  "status": "pending",
+  "instructions": "Run kaggle_training.ipynb on Kaggle to populate this file with real training metrics."
+}

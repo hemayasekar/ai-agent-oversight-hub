@@ -90,11 +90,13 @@ We evaluated a **random baseline** (uniform random decisions) against a **heuris
 | Random Baseline | 0.391       | —           |
 | Heuristic Agent | **0.657**   | **+68%**    |
 
+> **Reproduce:** `python evaluate.py --env-url http://localhost:7860 --episodes 25` (after starting the server). Plots are written to `plots/` as PNGs and the raw numbers to `plots/eval_results.json`.
+
 ### Per-Task Reward Comparison
 
 ![Reward Comparison by Task — Random baseline (red) vs Heuristic agent (green) across all 5 difficulty levels](plots/reward_comparison.png)
 
-_The heuristic agent consistently outperforms random across all task difficulties. Largest gains on multi-worker coordination (0.77 vs 0.41) — structured analysis of cross-worker dependencies matters most._
+_X-axis: task (easy → hard). Y-axis: mean reward per episode (0–1). Heuristic consistently outperforms random across all difficulties; largest gain on multi-worker coordination (0.77 vs 0.41)._
 
 ### Running Mean Reward Over Evaluation Steps
 
@@ -111,6 +113,34 @@ _Stable separation between approaches. The improvement is consistent, not lucky 
 ![Stacked bar showing detection/action/explanation/efficiency contributions per task](plots/reward_breakdown.png)
 
 _Detection accuracy and action appropriateness drive the largest improvements. Explanation quality shows the most room for gains with LLM-based agents — exactly what GRPO training should improve._
+
+## Training Evidence (GRPO on Qwen3-0.6B)
+
+We trained `Qwen/Qwen3-0.6B` against this environment using TRL's `GRPOTrainer` + `environment_factory` pattern on a Kaggle T4 GPU. The trainer auto-records loss and reward per step — plots and raw logs below.
+
+### Training Loss
+
+![GRPO training loss over steps](plots/training_loss.png)
+
+_X-axis: training step. Y-axis: GRPO loss. Generated automatically by the Kaggle notebook (`kaggle_training.ipynb`, cell 7) from `trainer.state.log_history`._
+
+### Reward Curve During Training
+
+![GRPO reward curve with random + heuristic baselines](plots/training_reward.png)
+
+_X-axis: training step. Y-axis: mean episode reward. Dashed lines show the random (0.39) and heuristic (0.66) baselines from the evaluation run above. The trained model is expected to climb past the heuristic baseline as GRPO optimizes against the dense 4-component reward._
+
+**Raw training log:** [`plots/training_log.json`](plots/training_log.json) (full `trainer.state.log_history` dump)  
+**Summary stats:** [`plots/training_summary.json`](plots/training_summary.json)
+
+### Reward Shaping for Tool-Call Format
+
+Small models (0.6B params) often struggle to emit valid `submit_review(...)` tool calls early in training. We added two shaping bonuses to give GRPO a learning gradient even before the model masters the format:
+
+- **Format-attempt bonus** (+0.05): any JSON-shaped output, even if invalid
+- **Format-validation bonus** (+0.10): well-structured `{"decisions": [...], "explanation": "..."}`
+
+See [`train.py`](train.py) `OversightEnv.submit_review` for the implementation.
 
 ## Training with GRPO (TRL + OpenEnv)
 
@@ -218,8 +248,12 @@ A researcher could write a paper about training on this. The domain (AI-on-AI ov
 
 ## Materials
 
-- **Live Environment:** [HF Space](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub)
-- **Training Notebook:** [Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)
-- **Blog Post:** [HF Discussion](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)
-- **OpenEnv:** [github.com/meta-pytorch/OpenEnv](https://github.com/meta-pytorch/OpenEnv)
-- **TRL OpenEnv Docs:** [huggingface.co/docs/trl/en/openenv](https://huggingface.co/docs/trl/en/openenv)
+- **🚀 Live Environment (HF Space):** https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub
+- **🎮 Interactive Demo:** https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/demo
+- **💻 Train on Kaggle (free GPU):** [`kaggle_training.ipynb`](kaggle_training.ipynb) — [import to Kaggle](https://www.kaggle.com/code/import?source=github&url=https://github.com/hemayasekar/ai-agent-oversight-hub/blob/main/kaggle_training.ipynb)
+- **📓 Train on Colab:** [`training_notebook.ipynb`](training_notebook.ipynb) — [Open in Colab](https://colab.research.google.com/github/hemayasekar/ai-agent-oversight-hub/blob/main/training_notebook.ipynb)
+- **📝 Blog / Writeup:** [`BLOG.md`](BLOG.md) and [HF Space Discussion](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/discussions/1)
+- **📊 Evaluation plots:** [`plots/`](plots/) (committed PNGs + `eval_results.json`)
+- **📦 GitHub:** https://github.com/hemayasekar/ai-agent-oversight-hub
+- **🔗 OpenEnv framework:** https://github.com/meta-pytorch/OpenEnv (we use `openenv-core==0.2.3`, the latest release)
+- **🔗 TRL OpenEnv docs:** https://huggingface.co/docs/trl/en/openenv
