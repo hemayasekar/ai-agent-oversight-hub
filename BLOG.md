@@ -2,6 +2,16 @@
 
 [![Watch the Demo Video](https://img.shields.io/badge/YouTube-Demo%20Video-red?logo=youtube)](https://youtu.be/_oczQKiETsU)
 
+## Architecture & Execution Flow
+
+![Project architecture — modules and their relationships](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/resolve/main/docs/architecture_overview.png)
+
+_Server (FastAPI + OpenEnv) hosts the environment, grader, and 5 scenarios. Training runs via Colab notebook over HTTP._
+
+![Execution flow — train → evaluate → infer → save outputs](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/resolve/main/docs/execution_flow.png)
+
+_End-to-end pipeline: run the Colab notebook → train with GRPO → evaluate baselines → save plots and metrics._
+
 ## The Problem: Who Watches the Watchers?
 
 As AI systems increasingly delegate tasks to teams of specialized agents — research assistants, code generators, data analysts — a critical question emerges: **how do we ensure these agents are producing correct, unbiased, and safe outputs?**
