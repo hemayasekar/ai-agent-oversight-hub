@@ -70,11 +70,11 @@ We evaluated two agents across all 5 tasks (25 episodes each):
 | Random Baseline | 0.391            |
 | Heuristic Agent | **0.657** (+68%) |
 
-![Reward Comparison](plots/reward_comparison.png)
+![Reward Comparison](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/resolve/main/plots/reward_comparison.png)
 
 The heuristic agent, which cross-references worker outputs against reference materials and checks for numerical discrepancies, dramatically outperforms random action selection. The largest gains appear in multi-worker coordination tasks, where structured analysis of cross-worker dependencies matters most.
 
-![Reward Curve](plots/reward_curve.png)
+![Reward Curve](https://huggingface.co/spaces/hemaya/ai-agent-oversight-hub/resolve/main/plots/reward_curve.png)
 
 The running mean reward shows stable separation between the two approaches — the improvement is consistent, not just lucky on a few episodes.
 
